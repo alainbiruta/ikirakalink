@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.microcareer.match.app-mergeDebugResources-90:/values-watch-v21/values-watch-v21.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\klain\\.gradle\\caches\\8.13\\transforms\\0af7796b99498cd9191b92e5403c399f\\transformed\\appcompat-1.6.1\\res\\values-watch-v21\\values-watch-v21.xml",
+                    "from": {
+                        "startLines": "2,6,10",
+                        "startColumns": "4,4,4",
+                        "startOffsets": "55,271,499",
+                        "endLines": "5,9,13",
+                        "endColumns": "12,12,12",
+                        "endOffsets": "266,494,724"
+                    }
+                }
+            ]
+        }
+    ]
+}

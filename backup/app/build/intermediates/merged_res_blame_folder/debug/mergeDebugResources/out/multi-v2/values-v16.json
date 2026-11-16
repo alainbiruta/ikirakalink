@@ -1,0 +1,38 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.microcareer.match.app-mergeDebugResources-90:/values-v16/values-v16.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\klain\\.gradle\\caches\\8.13\\transforms\\0af7796b99498cd9191b92e5403c399f\\transformed\\appcompat-1.6.1\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "5",
+                        "endColumns": "12",
+                        "endOffsets": "223"
+                    },
+                    "to": {
+                        "startLines": "3",
+                        "startColumns": "4",
+                        "startOffsets": "121",
+                        "endLines": "6",
+                        "endColumns": "12",
+                        "endOffsets": "289"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\klain\\.gradle\\caches\\8.13\\transforms\\3af3de23addeceb0d0547a653adad3b8\\transformed\\core-1.12.0\\res\\values-v16\\values-v16.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "65",
+                        "endOffsets": "116"
+                    }
+                }
+            ]
+        }
+    ]
+}

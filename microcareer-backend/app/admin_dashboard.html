@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IkirakaLink — Admin</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px; color: #1a1a1a; background: #f0f2f0;
+}
+#app { display: flex; height: 100vh; overflow: hidden; }
+#sidebar {
+  width: 220px; min-width: 220px; background: #0a5c42;
+  display: flex; flex-direction: column; overflow: hidden; z-index: 10;
+}
+.sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.sidebar-logo-name { color: #fff; font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.sidebar-logo-sub  { color: rgba(255,255,255,0.45); font-size: 11px; margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px; color: rgba(255,255,255,0.6); cursor: pointer;
+  border-left: 3px solid transparent; font-size: 13px;
+  transition: background 0.12s, color 0.12s; user-select: none;
+}
+.nav-link:hover  { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+.nav-link.active { background: rgba(255,255,255,0.13); color: #fff; font-weight: 600; border-left-color: #5fd4a8; }
+.nav-link svg { width: 15px; height: 15px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sidebar-footer { padding: 14px 18px; border-top: 1px solid rgba(255,255,255,0.1); }
+.sidebar-footer-url { font-size: 10px; color: rgba(255,255,255,0.35); margin-bottom: 2px; }
+.sidebar-footer-val { font-size: 11px; color: rgba(255,255,255,0.6); word-break: break-all; margin-bottom: 10px; }
+.btn-disconnect {
+  width: 100%; padding: 6px 10px; background: transparent;
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 7px;
+  color: rgba(255,255,255,0.65); font-size: 11px; cursor: pointer;
+  font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-disconnect:hover { background: rgba(255,255,255,0.08); }
+.btn-disconnect svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#topbar {
+  height: 50px; padding: 0 22px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff; border-bottom: 1px solid #e5e7e5; flex-shrink: 0;
+}
+#topbar-title { font-size: 15px; font-weight: 700; color: #111; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5a7a6a; font-weight: 500; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #1D9E75; }
+.btn-report {
+  padding: 6px 14px; background: #0a5c42; color: #fff; border: none;
+  border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: inherit; display: flex; align-items: center; gap: 6px; transition: background 0.15s;
+}
+.btn-report:hover { background: #0d7354; }
+.btn-report svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#content { flex: 1; overflow-y: auto; padding: 22px; }
+
+/* setup */
+#setup-screen {
+  position: fixed; inset: 0; background: #eef2ee;
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.setup-card {
+  background: #fff; border-radius: 16px; padding: 36px 38px;
+  width: 420px; max-width: calc(100vw - 40px);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+}
+.setup-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+.setup-icon {
+  width: 44px; height: 44px; background: #0a5c42; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.setup-icon svg { width: 22px; height: 22px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.setup-title { font-size: 19px; font-weight: 700; color: #111; }
+.setup-sub   { font-size: 12px; color: #888; margin-top: 2px; }
+.form-label  { display: block; font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.form-group  { margin-bottom: 16px; }
+.form-hint   { font-size: 11px; color: #999; margin-top: 5px; line-height: 1.5; }
+.form-hint code { background: #f5f5f5; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+input[type="text"], input[type="password"], input[type="search"] {
+  width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px;
+  font-size: 13px; font-family: inherit; color: #111; background: #fff;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus { border-color: #1D9E75; box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+.btn-connect {
+  width: 100%; padding: 11px; background: #0a5c42; color: #fff;
+  border: none; border-radius: 9px; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit; margin-top: 4px; transition: background 0.15s;
+}
+.btn-connect:hover   { background: #0d7354; }
+.btn-connect:active  { background: #084533; }
+.btn-connect:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* alerts */
+.alert {
+  padding: 10px 14px; border-radius: 8px; margin-bottom: 16px;
+  font-size: 12px; line-height: 1.5;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+}
+.alert-close { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; color: inherit; opacity: 0.6; flex-shrink: 0; padding: 0; }
+.alert-error   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+.alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+.alert-info    { background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; }
+.alert-warn    { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+
+/* kpi row — 3 cols now that finance card is removed */
+.kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: #fff; border: 1px solid #e8ebe8; border-radius: 12px; padding: 18px 20px;
+}
+.kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.kpi-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+.kpi-delta { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 99px; }
+.kpi-delta-up   { background: #d1fae5; color: #065f46; }
+.kpi-delta-neu  { background: #f3f4f6; color: #6b7280; }
+.kpi-value { font-size: 30px; font-weight: 800; color: #111; letter-spacing: -0.8px; line-height: 1; }
+.kpi-label { font-size: 12px; color: #888; margin-top: 4px; font-weight: 500; }
+
+/* layout */
+.two-col   { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+
+/* cards */
+.card { background: #fff; border: 1px solid #e8ebe8; border-radius: 12px; margin-bottom: 18px; overflow: hidden; }
+.card-header {
+  padding: 14px 18px; border-bottom: 1px solid #f0f2f0;
+  font-size: 12px; font-weight: 700; color: #444;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-footer { padding: 9px 18px; border-top: 1px solid #f0f2f0; font-size: 11px; color: #aaa; }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: #fafafa; }
+th {
+  text-align: left; padding: 9px 14px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #888; border-bottom: 1px solid #eee; white-space: nowrap;
+}
+td { padding: 10px 14px; border-bottom: 1px solid #f3f3f3; vertical-align: middle; color: #222; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #fafdf9; }
+
+/* badges */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; letter-spacing: 0.03em; white-space: nowrap; }
+.badge-active, .badge-open, .badge-approved, .badge-employee { background: #d1fae5; color: #065f46; }
+.badge-suspended, .badge-removed, .badge-flagged             { background: #fee2e2; color: #991b1b; }
+.badge-closed   { background: #f3f4f6; color: #6b7280; }
+.badge-pending  { background: #fef3c7; color: #92400e; }
+.badge-employer { background: #dbeafe; color: #1e40af; }
+.badge-admin    { background: #fef3c7; color: #92400e; }
+.badge-default  { background: #f3f4f6; color: #6b7280; }
+
+/* buttons */
+.actions { display: flex; gap: 5px; flex-wrap: wrap; }
+.btn { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid; font-family: inherit; white-space: nowrap; transition: opacity 0.12s, transform 0.1s; }
+.btn:hover  { opacity: 0.8; }
+.btn:active { transform: scale(0.96); }
+.btn-activate { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.btn-suspend  { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.btn-delete   { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.btn-moderate { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+.btn-approve  { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+.btn-remove   { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+.btn-refresh  { background: #f9fafb; border-color: #d1d5db; color: #374151; }
+.btn-reopen   { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+
+/* search */
+.search-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+.search-row input { flex: 1; }
+
+/* tabs */
+.tab-bar { display: flex; border-bottom: 1px solid #eee; margin-bottom: 18px; }
+.tab-btn { padding: 8px 16px; font-size: 12px; font-weight: 600; color: #888; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; font-family: inherit; transition: color 0.12s; }
+.tab-btn:hover  { color: #333; }
+.tab-btn.active { color: #0a5c42; border-bottom-color: #1D9E75; }
+.tab-count { display: inline-block; margin-left: 5px; padding: 0 5px; background: #fee2e2; color: #991b1b; border-radius: 99px; font-size: 10px; font-weight: 700; }
+
+/* loading / empty */
+.loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 48px 20px; color: #aaa; font-size: 13px; }
+.spin { display: inline-block; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 48px 20px; color: #bbb; font-size: 13px; }
+.empty-state svg { width: 36px; height: 36px; stroke: currentColor; fill: none; stroke-width: 1.5; margin: 0 auto 10px; display: block; opacity: 0.4; }
+
+/* performers */
+.performer-row { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid #f3f3f3; }
+.performer-row:last-child { border-bottom: none; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: #d1fae5; color: #065f46; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.performer-name  { font-weight: 600; font-size: 13px; }
+.performer-sub   { font-size: 11px; color: #888; }
+.performer-score { font-size: 15px; font-weight: 700; color: #1D9E75; }
+
+/* chart */
+.chart-wrap { padding: 10px 18px 18px; }
+svg.chart { width: 100%; overflow: visible; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; }
+.legend-dot  { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* rating bar */
+.rating-bar-row   { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.rating-bar-label { font-size: 12px; color: #555; width: 14px; text-align: right; flex-shrink: 0; }
+.rating-bar-track { flex: 1; background: #f0f0f0; border-radius: 99px; height: 8px; overflow: hidden; }
+.rating-bar-fill  { height: 100%; border-radius: 99px; background: #1D9E75; transition: width 0.4s ease; }
+.rating-bar-count { font-size: 11px; color: #aaa; width: 28px; text-align: right; flex-shrink: 0; }
+
+/* mini stat (shared across stats page) */
+.fin-item       { }
+.fin-item-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #aaa; margin-bottom: 3px; }
+.fin-item-value { font-size: 18px; font-weight: 800; color: #111; letter-spacing: -0.3px; }
+
+/* donut */
+.donut-wrap    { display: flex; align-items: center; gap: 20px; padding: 16px 18px; }
+.donut-legend  { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.donut-leg-item{ display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.donut-leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.donut-leg-val { margin-left: auto; font-weight: 700; color: #333; }
+
+/* category pills */
+.cat-pills { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 18px; }
+.cat-pill  { padding: 4px 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 99px; font-size: 11px; font-weight: 600; color: #065f46; display: flex; align-items: center; gap: 5px; }
+.cat-pill-count { background: #1D9E75; color: #fff; border-radius: 99px; padding: 0 5px; font-size: 10px; font-weight: 700; }
+
+/* report modal */
+#report-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 200; }
+#report-modal.open { display: flex; }
+.report-card { background: #fff; border-radius: 16px; width: 520px; max-width: calc(100vw - 32px); max-height: calc(100vh - 60px); overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
+.report-header { padding: 22px 24px 18px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; }
+.report-title  { font-size: 16px; font-weight: 700; color: #111; }
+.report-close  { background: none; border: none; cursor: pointer; font-size: 20px; color: #999; line-height: 1; padding: 0; }
+.report-close:hover { color: #333; }
+.report-body   { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.report-section       { margin-bottom: 20px; }
+.report-section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; margin-bottom: 10px; }
+.report-row       { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid #f8f8f8; font-size: 13px; }
+.report-row:last-child { border-bottom: none; }
+.report-row-label { color: #555; }
+.report-row-value { font-weight: 700; color: #111; }
+.report-footer { padding: 16px 24px; border-top: 1px solid #f0f0f0; display: flex; gap: 10px; justify-content: flex-end; }
+.btn-download { padding: 9px 18px; background: #0a5c42; color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+.btn-download:hover { background: #0d7354; }
+.btn-cancel { padding: 9px 18px; background: #f3f4f6; color: #555; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.btn-cancel:hover { background: #e5e7eb; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-header">
+      <div class="setup-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="setup-title">IkirakaLink Admin</div>
+        <div class="setup-sub">Connect to your FastAPI backend</div>
+      </div>
+    </div>
+    <div id="setup-alert"></div>
+    <div class="form-group">
+      <label class="form-label" for="inp-url">Backend URL</label>
+      <input id="inp-url" type="text" value="http://localhost:8000" placeholder="http://localhost:8000" />
+      <div class="form-hint">Root URL — no trailing slash</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="inp-token">Admin JWT Token</label>
+      <input id="inp-token" type="password" placeholder="eyJhbGciOiJIUzI1NiIs…" style="font-family:monospace;font-size:12px;" />
+      <div class="form-hint">
+        Get token: <code>POST /api/v1/auth/token</code><br/>
+        Promote to admin: <code>UPDATE users SET role='ADMIN' WHERE email='you@…';</code>
+      </div>
+    </div>
+    <button id="btn-connect" class="btn-connect">Connect →</button>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="report-modal">
+  <div class="report-card">
+    <div class="report-header">
+      <div class="report-title">📊 Platform Report</div>
+      <button class="report-close" onclick="closeReport()">×</button>
+    </div>
+    <div class="report-body" id="report-body"></div>
+    <div class="report-footer">
+      <button class="btn-cancel" onclick="closeReport()">Cancel</button>
+      <button class="btn-download" onclick="downloadReport()">⬇ Download CSV</button>
+      <button class="btn-download" style="background:#185FA5;" onclick="downloadReportJSON()">⬇ Download JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+  <div id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-name">IkirakaLink</div>
+      <div class="sidebar-logo-sub">Admin panel</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-link active" data-tab="overview">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Overview
+      </div>
+      <div class="nav-link" data-tab="users">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users
+      </div>
+      <div class="nav-link" data-tab="jobs">
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Jobs
+      </div>
+      <div class="nav-link" data-tab="reviews">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Reviews
+      </div>
+      <div class="nav-link" data-tab="stats">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Statistics
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-url">Connected to</div>
+      <div class="sidebar-footer-val" id="sidebar-url-display">—</div>
+      <button class="btn-disconnect" id="btn-disconnect">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Disconnect
+      </button>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="topbar">
+      <div id="topbar-title">Overview</div>
+      <div class="topbar-right">
+        <button class="btn-report" onclick="openReportModal()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Generate Report
+        </button>
+        <div class="topbar-status"><div class="status-dot"></div>Admin session active</div>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+let BASE_URL = '';
+let TOKEN = '';
+let CURRENT_TAB = 'overview';
+let _cachedPlatformStats = null;
+
+const TAB_TITLES = {
+  overview: 'Overview',
+  users:    'User Management',
+  jobs:     'Job Moderation',
+  reviews:  'Review Moderation',
+  stats:    'Platform Statistics',
+};
+
+/* ═══════════════════════════════════════════════════════════
+   API HELPER
+═══════════════════════════════════════════════════════════ */
+async function api(method, path, body) {
+  try {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN },
+    };
+    if (body !== undefined) opts.body = JSON.stringify(body);
+    const res = await fetch(BASE_URL + path, opts);
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) {
+      const msg = data?.detail || data?.message || ('HTTP ' + res.status);
+      return { ok: false, error: msg, status: res.status };
+    }
+    return { ok: true, data, status: res.status };
+  } catch (e) {
+    return { ok: false, error: e.message || 'Network error', status: 0 };
+  }
+}
+
+function toArr(data, keys = []) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  for (const k of keys) {
+    if (Array.isArray(data[k])) return data[k];
+    if (data.data && Array.isArray(data.data[k])) return data.data[k];
+  }
+  if (Array.isArray(data.data)) return data.data;
+  return [];
+}
+
+function badgeCls(val) {
+  if (!val) return 'badge badge-default';
+  const v = String(val).toUpperCase();
+  const m = {
+    ACTIVE:'active', OPEN:'open', APPROVED:'approved',
+    SUSPENDED:'suspended', REMOVED:'removed', FLAGGED:'flagged',
+    CLOSED:'closed', CANCELLED:'suspended', PENDING:'pending',
+    EMPLOYER:'employer', EMPLOYEE:'employee', ADMIN:'admin',
+  };
+  return 'badge badge-' + (m[v] || 'default');
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).map(w => w[0]).join('').slice(0,2).toUpperCase();
+}
+
+function esc(v) {
+  if (v == null) return '—';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+const $ = id => document.getElementById(id);
+function setContent(html) { $('content').innerHTML = html; }
+function alertHtml(type, msg) {
+  return `<div class="alert alert-${type}"><span>${esc(msg)}</span><button class="alert-close" onclick="this.closest('.alert').remove()">×</button></div>`;
+}
+function spinner() { return '<div class="loading"><span class="spin">⟳</span> Loading…</div>'; }
+function emptyState(msg) {
+  return `<div class="empty-state"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>${esc(msg)}</div>`;
+}
+function badge(val) {
+  return `<span class="${badgeCls(val)}">${val ? String(val).toUpperCase() : '—'}</span>`;
+}
+
+/* ─── bar chart ───────────────────────────────────────────── */
+function barChart(data, xKey, yKeys, colors, height = 160) {
+  if (!data || !data.length) return '<div style="color:#bbb;text-align:center;padding:20px;font-size:12px;">No chart data yet</div>';
+  const vals = data.flatMap(d => yKeys.map(k => Number(d[k] || 0)));
+  const max  = Math.max(...vals, 1);
+  const W = 600, H = height, pad = { top: 10, right: 10, bottom: 32, left: 40 };
+  const cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  const bW = (cW / data.length) * 0.72, gap = (cW / data.length) * 0.28;
+  let bars = '';
+  data.forEach((d, i) => {
+    const x0 = pad.left + i * (cW / data.length) + gap / 2;
+    yKeys.forEach((k, ki) => {
+      const v = Number(d[k] || 0), bh = Math.max((v / max) * cH, v > 0 ? 2 : 0);
+      const x = x0 + ki * (bW / yKeys.length), y = pad.top + cH - bh;
+      bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bW/yKeys.length-1.5).toFixed(1)}" height="${bh.toFixed(1)}" fill="${colors[ki]||'#1D9E75'}" rx="3" opacity="0.9"/>`;
+    });
+    bars += `<text x="${(x0+bW/2).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="#bbb">${esc(String(d[xKey]||'').slice(-5))}</text>`;
+  });
+  let ticks = '';
+  for (let t = 0; t <= 4; t++) {
+    const v = Math.round((max*t)/4), y = pad.top + cH - (v/max)*cH;
+    ticks += `<line x1="${pad.left}" y1="${y.toFixed(1)}" x2="${W-pad.right}" y2="${y.toFixed(1)}" stroke="#f0f0f0" stroke-width="1"/>`;
+    ticks += `<text x="${pad.left-5}" y="${y.toFixed(1)}" text-anchor="end" dominant-baseline="middle" font-size="9" fill="#ccc">${v}</text>`;
+  }
+  return `<div class="chart-wrap"><svg class="chart" viewBox="0 0 ${W} ${H}" style="height:${H}px">${ticks}${bars}</svg></div>`;
+}
+
+/* ─── donut chart ─────────────────────────────────────────── */
+function donutChart(segments, size = 100) {
+  const total = segments.reduce((s, x) => s + x.value, 0);
+  if (!total) return '';
+  let offset = -90, paths = '';
+  segments.forEach(seg => {
+    const angle = (seg.value / total) * 360;
+    const r = 40, cx = 50, cy = 50;
+    const start = polarToXY(cx, cy, r, offset);
+    const end   = polarToXY(cx, cy, r, offset + angle);
+    paths += `<path d="M${cx},${cy} L${start.x},${start.y} A${r},${r} 0 ${angle>180?1:0},1 ${end.x},${end.y} Z" fill="${seg.color}" />`;
+    offset += angle;
+  });
+  return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" style="flex-shrink:0">
+    ${paths}
+    <circle cx="50" cy="50" r="26" fill="white"/>
+    <text x="50" y="54" text-anchor="middle" font-size="13" font-weight="700" fill="#111">${total > 999 ? (total/1000).toFixed(1)+'k' : total}</text>
+  </svg>`;
+}
+function polarToXY(cx, cy, r, deg) {
+  const rad = (deg * Math.PI) / 180;
+  return { x: +(cx + r * Math.cos(rad)).toFixed(3), y: +(cy + r * Math.sin(rad)).toFixed(3) };
+}
+
+/* ─── rating bars ─────────────────────────────────────────── */
+function ratingBars(dist, total) {
+  if (!dist || !total) return '<div style="color:#bbb;font-size:11px;padding:14px 18px;">No ratings yet</div>';
+  let html = '<div style="padding:12px 18px;">';
+  for (let s = 5; s >= 1; s--) {
+    const cnt = dist[String(s)] || 0;
+    const pct = total ? Math.round((cnt / total) * 100) : 0;
+    html += `<div class="rating-bar-row">
+      <div class="rating-bar-label">${s}</div>
+      <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${pct}%"></div></div>
+      <div class="rating-bar-count">${cnt}</div>
+    </div>`;
+  }
+  return html + '</div>';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP / AUTH
+═══════════════════════════════════════════════════════════ */
+$('btn-connect').addEventListener('click', async () => {
+  const url   = $('inp-url').value.trim().replace(/\/$/, '');
+  const token = $('inp-token').value.trim();
+  $('setup-alert').innerHTML = '';
+  if (!url)   { $('setup-alert').innerHTML = alertHtml('error', 'Please enter the backend URL.'); return; }
+  if (!token) { $('setup-alert').innerHTML = alertHtml('error', 'Please enter your admin JWT token.'); return; }
+  $('btn-connect').textContent = 'Connecting…';
+  $('btn-connect').disabled = true;
+  try {
+    const res = await fetch(url + '/api/v1/admin/stats/platform', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (res.status === 401 || res.status === 403) {
+      let detail = '';
+      try { detail = (await res.json()).detail || ''; } catch (_) {}
+      $('setup-alert').innerHTML = alertHtml('error', `Access denied (${res.status}). ${detail}\nMake sure role = 'ADMIN' in your users table.`);
+      $('btn-connect').textContent = 'Connect →'; $('btn-connect').disabled = false; return;
+    }
+    if (res.status >= 500) {
+      $('setup-alert').innerHTML = alertHtml('error', 'Backend error ' + res.status + '. Check FastAPI logs.');
+      $('btn-connect').textContent = 'Connect →'; $('btn-connect').disabled = false; return;
+    }
+    BASE_URL = url; TOKEN = token;
+    $('setup-screen').style.display = 'none';
+    $('app').style.display = 'flex';
+    $('sidebar-url-display').textContent = url;
+    navigateTo('overview');
+  } catch (e) {
+    const hint = e.message.includes('fetch') ? ' Is FastAPI running? Is CORS configured?' : '';
+    $('setup-alert').innerHTML = alertHtml('error', 'Cannot reach server: ' + e.message + hint);
+    $('btn-connect').textContent = 'Connect →'; $('btn-connect').disabled = false;
+  }
+});
+$('inp-token').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-connect').click(); });
+$('btn-disconnect').addEventListener('click', () => {
+  BASE_URL = ''; TOKEN = ''; _cachedPlatformStats = null;
+  $('app').style.display = 'none';
+  $('setup-screen').style.display = 'flex';
+  $('inp-token').value = '';
+  $('btn-connect').textContent = 'Connect →'; $('btn-connect').disabled = false;
+});
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => navigateTo(link.dataset.tab));
+});
+function navigateTo(tab) {
+  CURRENT_TAB = tab;
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.tab === tab));
+  $('topbar-title').textContent = TAB_TITLES[tab] || tab;
+  ({ overview, users, jobs, reviews, stats })[tab]?.();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OVERVIEW
+═══════════════════════════════════════════════════════════ */
+async function overview() {
+  setContent(spinner());
+  const [rPlat, rAct, rTop] = await Promise.all([
+    api('GET', '/api/v1/admin/stats/platform'),
+    api('GET', '/api/v1/admin/stats/activity'),
+    api('GET', '/api/v1/admin/stats/top-performers'),
+  ]);
+
+  if (rPlat.ok) _cachedPlatformStats = rPlat.data?.data || rPlat.data;
+
+  const s   = rPlat.ok ? (rPlat.data?.data || rPlat.data || {}) : {};
+  const top = rTop.ok  ? (rTop.data?.data  || rTop.data  || {}) : {};
+
+  let actArr = [];
+  if (rAct.ok) {
+    const src = rAct.data?.data || rAct.data || {};
+    const dates = new Set([...Object.keys(src.users||{}), ...Object.keys(src.jobs||{}), ...Object.keys(src.applications||{})]);
+    actArr = [...dates].sort().map(d => ({
+      date: d,
+      users:        (src.users||{})[d]||0,
+      jobs:         (src.jobs||{})[d]||0,
+      applications: (src.applications||{})[d]||0,
+    }));
+  }
+
+  const u = s.users || {}, j = s.jobs || {}, a = s.applications || {}, w = s.work || {};
+
+  const html = `
+    <div class="kpi-row">
+      ${kpiCard('👥', u.total||0,    'Total Users',    u.new7Days||0, 'new this week',    '#d1fae5','#065f46')}
+      ${kpiCard('💼', j.open||0,     'Open Jobs',      j.new7Days||0, 'posted this week', '#dbeafe','#1e40af')}
+      ${kpiCard('📋', a.total||0,    'Applications',   a.pending||0,  'pending review',   '#ede9fe','#5b21b6')}
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        Activity — last 30 days
+        <div style="display:flex;gap:14px;">
+          <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Users</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>Jobs</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Applications</div>
+        </div>
+      </div>
+      ${actArr.length
+        ? barChart(actArr, 'date', ['users','jobs','applications'], ['#1D9E75','#185FA5','#7c3aed'], 160)
+        : '<div style="padding:30px;color:#bbb;font-size:12px;text-align:center;">No activity data yet — users will appear here once your platform is active.</div>'}
+    </div>
+
+    <div class="card">
+      <div class="card-header">Top rated workers</div>
+      ${(top.topRated||[]).length
+        ? (top.topRated||[]).slice(0,6).map((u,i) => `
+          <div class="performer-row">
+            <div style="width:20px;font-size:11px;font-weight:700;color:#ddd;">#${i+1}</div>
+            <div class="avatar">${initials(u.name)}</div>
+            <div style="flex:1">
+              <div class="performer-name">${esc(u.name||'—')}</div>
+              <div class="performer-sub">${esc(u.email||'')} · ${u.completedJobs||0} jobs</div>
+            </div>
+            <div class="performer-score">${(u.averageRating||0).toFixed(1)} ★</div>
+          </div>`).join('')
+        : emptyState('No rated workers yet')}
+    </div>`;
+
+  setContent(html);
+}
+
+function kpiCard(icon, value, label, delta, deltaLabel, bgColor, textColor) {
+  const deltaHtml = delta > 0
+    ? `<span class="kpi-delta kpi-delta-up">+${delta} ${deltaLabel}</span>`
+    : `<span class="kpi-delta kpi-delta-neu">0 ${deltaLabel}</span>`;
+  return `<div class="kpi-card">
+    <div class="kpi-header">
+      <div class="kpi-icon" style="background:${bgColor};color:${textColor};">${icon}</div>
+      ${deltaHtml}
+    </div>
+    <div class="kpi-value">${typeof value === 'number' ? value.toLocaleString() : value}</div>
+    <div class="kpi-label">${label}</div>
+  </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   USERS
+═══════════════════════════════════════════════════════════ */
+let _usersCache = [];
+
+async function users(searchVal = '') {
+  if (!searchVal) setContent(spinner());
+  const r = await api('GET', '/api/v1/admin/users');
+  if (!r.ok) { setContent(alertHtml('error', 'Failed to load users: ' + r.error)); return; }
+  _usersCache = toArr(r.data, ['users','results','items']);
+  renderUsers(searchVal);
+}
+
+function renderUsers(q = '') {
+  const list = _usersCache.filter(u => {
+    if (!q) return true;
+    const s = q.toLowerCase();
+    return (u.full_name||'').toLowerCase().includes(s)
+        || (u.email||'').toLowerCase().includes(s)
+        || (u.role||'').toLowerCase().includes(s)
+        || (u.phone_number||'').toLowerCase().includes(s)
+        || (u.location||'').toLowerCase().includes(s);
+  });
+
+  let html = `<div class="search-row">
+    <input type="search" placeholder="Search by name, email, role, phone, location…"
+      value="${esc(q)}" oninput="renderUsers(this.value)" />
+    <button class="btn btn-refresh" onclick="users()">↻ Refresh</button>
+  </div>`;
+
+  if (!list.length) { html += `<div class="card">${emptyState('No users found')}</div>`; setContent(html); return; }
+
+  html += `<div class="card"><div class="table-wrap"><table>
+    <thead><tr>
+      <th style="width:50px">ID</th>
+      <th>Name / Phone</th>
+      <th>Email</th>
+      <th style="width:100px">Role</th>
+      <th style="width:170px">Stats</th>
+      <th style="width:200px">Actions</th>
+    </tr></thead><tbody>`;
+
+  for (const u of list) {
+    const isSuspended = u.is_suspended ?? (u.role === 'SUSPENDED');
+    html += `<tr>
+      <td style="color:#ccc;font-size:11px;">${esc(u.id)}</td>
+      <td>
+        <div style="font-weight:600;">${esc(u.full_name||'—')}</div>
+        <div style="font-size:10px;color:#999;">${esc(u.phone_number||'—')}</div>
+      </td>
+      <td style="color:#777;font-size:12px;">${esc(u.email||'—')}</td>
+      <td>
+        ${badge(u.role)}
+        ${isSuspended ? '<br/><span style="font-size:10px;color:#991b1b;">⚠ Suspended</span>' : ''}
+      </td>
+      <td style="font-size:11px;color:#666;line-height:1.7;">
+        ⭐ ${esc(u.rating||0)} avg rating<br/>
+        ✅ ${esc(u.completed_jobs||0)} jobs done<br/>
+        📍 ${esc(u.location||'—')}
+        ${u.company_name ? `<br/>🏢 ${esc(u.company_name)}` : ''}
+      </td>
+      <td>
+        <div class="actions">
+          ${isSuspended
+            ? `<button class="btn btn-activate" onclick="userActivate('${u.id}','${u.role}')">Activate</button>`
+            : `<button class="btn btn-suspend"  onclick="userSuspend('${u.id}')">Suspend</button>`}
+          <button class="btn btn-delete" onclick="userDelete('${u.id}','${esc(u.full_name||u.email)}')">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  html += `</tbody></table></div>
+    <div class="card-footer">${list.length} user${list.length!==1?'s':''} — ${_usersCache.filter(u=>u.role==='EMPLOYEE').length} employees · ${_usersCache.filter(u=>u.role==='EMPLOYER').length} employers · ${_usersCache.filter(u=>u.is_suspended||u.role==='SUSPENDED').length} suspended</div>
+  </div>`;
+
+  setContent(html);
+}
+
+async function userSuspend(userId) {
+  const reason = prompt('Reason for suspension:');
+  if (!reason) return;
+  const days = prompt('Duration in days (leave blank for permanent):');
+  const r = await api('POST', `/api/v1/admin/users/${userId}/suspend`, { reason, duration_days: days ? parseInt(days) : null });
+  if (r.ok) { users(); } else { alert('Error: ' + r.error); }
+}
+
+async function userActivate(userId, previousRole) {
+  const restore = ['EMPLOYEE','EMPLOYER'].includes(previousRole) ? previousRole : 'EMPLOYEE';
+  if (!confirm(`Re-activate this user as ${restore}?`)) return;
+  const r = await api('POST', `/api/v1/admin/users/${userId}/activate?restore_role=${restore}`);
+  if (r.ok) { users(); } else { alert('Error: ' + r.error); }
+}
+
+async function userDelete(userId, name) {
+  if (!confirm(`Permanently delete user "${name}"? This cannot be undone.`)) return;
+  const r = await api('DELETE', `/api/v1/admin/users/${userId}`);
+  if (r.ok) { users(); } else { alert('Error: ' + r.error); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   JOBS
+═══════════════════════════════════════════════════════════ */
+let _jobsCache = [];
+
+async function jobs(searchVal = '') {
+  if (!searchVal) setContent(spinner());
+  const r = await api('GET', '/api/v1/admin/jobs');
+  if (!r.ok) { setContent(alertHtml('error', 'Failed to load jobs: ' + r.error)); return; }
+  _jobsCache = toArr(r.data, ['jobs','results','items']);
+  renderJobs(searchVal);
+}
+
+function renderJobs(q = '') {
+  const list = _jobsCache.filter(j => {
+    if (!q) return true;
+    const s = q.toLowerCase();
+    return (j.title||'').toLowerCase().includes(s)
+        || (j.employerName||j.employer_name||'').toLowerCase().includes(s)
+        || (j.location||j.district||'').toLowerCase().includes(s)
+        || (j.status||'').toLowerCase().includes(s);
+  });
+
+  let html = `<div class="search-row">
+    <input type="search" placeholder="Search by title, employer, location, status…"
+      value="${esc(q)}" oninput="renderJobs(this.value)" />
+    <button class="btn btn-refresh" onclick="jobs()">↻ Refresh</button>
+  </div>`;
+
+  if (!list.length) { html += `<div class="card">${emptyState('No jobs found')}</div>`; setContent(html); return; }
+
+  html += `<div class="card"><div class="table-wrap"><table>
+    <thead><tr>
+      <th style="width:50px">ID</th>
+      <th>Title</th>
+      <th style="width:140px">Employer</th>
+      <th style="width:110px">Location</th>
+      <th style="width:100px">Pay (RWF)</th>
+      <th style="width:85px">Status</th>
+      <th style="width:200px">Actions</th>
+    </tr></thead><tbody>`;
+
+  for (const j of list) {
+    const pay = j.pay_rate || j.salary || j.wage || j.hourly_rate;
+    const isOpen   = (j.status||'').toUpperCase() === 'OPEN';
+    const isClosed = (j.status||'').toUpperCase() === 'CLOSED';
+    html += `<tr>
+      <td style="color:#ccc;font-size:11px;">${esc(j.id)}</td>
+      <td style="font-weight:600;">${esc(j.title||'—')}</td>
+      <td style="color:#777;font-size:12px;">
+        ${esc(j.employerName||j.employer_name||j.employer_id||'—')}<br/>
+        <span style="font-size:10px;color:#bbb;">${esc(j.employerEmail||j.employer_email||'')}</span>
+      </td>
+      <td style="font-size:12px;">${esc(j.location||j.district||j.location_type||'—')}</td>
+      <td style="font-size:12px;">${pay ? Number(pay).toLocaleString() : '—'}</td>
+      <td>${badge(j.status||'OPEN')}</td>
+      <td><div class="actions">
+        ${isOpen ? `<button class="btn btn-moderate" onclick="jobAction('PUT','/api/v1/admin/jobs/${j.id}',{status:'CLOSED',moderation_note:'Closed by admin'},'Close this job?')">Close</button>` : ''}
+        ${isClosed ? `<button class="btn btn-reopen" onclick="jobAction('PUT','/api/v1/admin/jobs/${j.id}',{status:'OPEN',moderation_note:'Reopened by admin'},'Reopen this job?')">Reopen</button>` : ''}
+        <button class="btn btn-delete" onclick="jobDelete('${j.id}','${esc(j.title||'')}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }
+
+  html += `</tbody></table></div>
+    <div class="card-footer">${list.length} job${list.length!==1?'s':''} — ${_jobsCache.filter(j=>(j.status||'').toUpperCase()==='OPEN').length} open · ${_jobsCache.filter(j=>(j.status||'').toUpperCase()==='CLOSED').length} closed</div>
+  </div>`;
+
+  setContent(html);
+}
+
+async function jobAction(method, path, body, confirmMsg) {
+  if (!confirm(confirmMsg)) return;
+  const r = await api(method, path, body);
+  if (r.ok) { jobs(); } else { alert('Error: ' + r.error); }
+}
+
+async function jobDelete(jobId, title) {
+  const reason = prompt(`Reason for deleting "${title}" (min 10 chars):`);
+  if (reason === null) return;
+  if (!reason || reason.length < 10) { alert('Please enter a reason of at least 10 characters.'); return; }
+  const r = await api('DELETE', `/api/v1/admin/jobs/${jobId}?reason=${encodeURIComponent(reason)}`);
+  if (r.ok) { jobs(); } else { alert('Error: ' + r.error); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REVIEWS
+═══════════════════════════════════════════════════════════ */
+let _allReviews = [], _flaggedReviews = [], _reviewTab = 'all';
+
+async function reviews(tab = _reviewTab) {
+  _reviewTab = tab;
+  setContent(spinner());
+  const [rAll, rFlag] = await Promise.all([
+    api('GET', '/api/v1/admin/reviews'),
+    api('GET', '/api/v1/admin/reviews/flagged'),
+  ]);
+  _allReviews     = rAll.ok  ? toArr(rAll.data,  ['reviews','items','results']) : [];
+  _flaggedReviews = rFlag.ok ? toArr(rFlag.data,  ['reviews','items','results']) : [];
+  renderReviews();
+}
+
+function renderReviews() {
+  const list = _reviewTab === 'flagged' ? _flaggedReviews : _allReviews;
+
+  let html = `<div class="tab-bar">
+    <button class="tab-btn ${_reviewTab==='all'?'active':''}" onclick="_reviewTab='all';renderReviews()">
+      All <span style="background:#f0f2f0;color:#888;border-radius:99px;padding:0 6px;font-size:10px;margin-left:4px;">${_allReviews.length}</span>
+    </button>
+    <button class="tab-btn ${_reviewTab==='flagged'?'active':''}" onclick="_reviewTab='flagged';renderReviews()">
+      Flagged ${_flaggedReviews.length ? `<span class="tab-count">${_flaggedReviews.length}</span>` : ''}
+    </button>
+    <button class="btn btn-refresh" style="margin-left:auto;" onclick="reviews()">↻ Refresh</button>
+  </div>`;
+
+  if (!list.length) {
+    html += `<div class="card">${emptyState(_reviewTab==='flagged'?'No flagged reviews':'No reviews yet')}</div>`;
+    setContent(html); return;
+  }
+
+  html += `<div class="card"><div class="table-wrap"><table>
+    <thead><tr>
+      <th>Reviewer</th><th>Worker reviewed</th>
+      <th style="width:90px">Rating</th><th style="width:80px">Status</th>
+      <th>Comment</th><th style="width:200px">Actions</th>
+    </tr></thead><tbody>`;
+
+  for (const rv of list) {
+    const rating  = rv.overall_rating ?? rv.rating;
+    const stars   = rating != null ? '★'.repeat(Math.min(5,Math.round(rating)))+' '+Number(rating).toFixed(1) : '—';
+    const stColor = rating >= 4 ? '#065f46' : rating <= 2 ? '#991b1b' : '#92400e';
+    const content = rv.comment || rv.content || rv.review || rv.text || '';
+    const status  = rv.is_approved ? 'APPROVED' : (rv.is_flagged ? 'FLAGGED' : 'PENDING');
+    html += `<tr>
+      <td style="font-size:12px;">${esc(rv.reviewerName||rv.reviewer_name||rv.reviewer_id||'—')}<br/><span style="font-size:10px;color:#bbb;">${esc(rv.reviewerEmail||rv.reviewer_email||'')}</span></td>
+      <td style="font-size:12px;">${esc(rv.revieweeName||rv.reviewee_name||rv.reviewee_id||'—')}<br/><span style="font-size:10px;color:#bbb;">${esc(rv.revieweeEmail||rv.reviewee_email||'')}${rv.jobTitle?` · ${esc(rv.jobTitle)}`:''}</span></td>
+      <td style="font-size:12px;font-weight:700;color:${stColor};">${esc(stars)}</td>
+      <td>${badge(status)}</td>
+      <td style="font-size:12px;color:#777;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(content)}">${esc(content||'—')}</td>
+      <td><div class="actions">
+        <button class="btn btn-approve" onclick="reviewAction('PUT','/api/v1/admin/reviews/${rv.id}/moderate',{is_approved:true,moderation_note:'Approved by admin'},'Approve this review?')">Approve</button>
+        <button class="btn btn-remove"  onclick="reviewAction('PUT','/api/v1/admin/reviews/${rv.id}/moderate',{is_approved:false,moderation_note:'Rejected by admin'},'Reject this review?')">Reject</button>
+        <button class="btn btn-delete"  onclick="reviewDelete('${rv.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }
+
+  html += `</tbody></table></div><div class="card-footer">${list.length} review${list.length!==1?'s':''}</div></div>`;
+  setContent(html);
+}
+
+async function reviewAction(method, path, body, confirmMsg) {
+  if (!confirm(confirmMsg)) return;
+  const r = await api(method, path, body);
+  if (r.ok) { reviews(); } else { alert('Error: ' + r.error); }
+}
+
+async function reviewDelete(reviewId) {
+  const reason = prompt('Reason for deletion (min 10 chars):');
+  if (reason === null) return;
+  if (!reason || reason.length < 10) { alert('Please enter a reason of at least 10 characters.'); return; }
+  const r = await api('DELETE', `/api/v1/admin/reviews/${reviewId}?reason=${encodeURIComponent(reason)}`);
+  if (r.ok) { reviews(); } else { alert('Error: ' + r.error); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATISTICS
+═══════════════════════════════════════════════════════════ */
+async function stats() {
+  setContent(spinner());
+  const [rPlat, rAct, rTop] = await Promise.all([
+    api('GET', '/api/v1/admin/stats/platform'),
+    api('GET', '/api/v1/admin/stats/activity'),
+    api('GET', '/api/v1/admin/stats/top-performers'),
+  ]);
+
+  if (rPlat.ok) _cachedPlatformStats = rPlat.data?.data || rPlat.data;
+  if (!rPlat.ok) { setContent(alertHtml('error', 'Failed to load statistics: ' + rPlat.error)); return; }
+
+  const s   = rPlat.data?.data || rPlat.data || {};
+  const top = rTop.ok ? (rTop.data?.data || rTop.data || {}) : {};
+  const u   = s.users        || {};
+  const j   = s.jobs         || {};
+  const a   = s.applications || {};
+  const w   = s.work         || {};
+  const rv  = s.reviews      || {};
+  const eng = s.engagement   || {};
+
+  let actArr = [];
+  if (rAct.ok) {
+    const src = rAct.data?.data || rAct.data || {};
+    const dates = new Set([...Object.keys(src.users||{}), ...Object.keys(src.jobs||{}), ...Object.keys(src.applications||{})]);
+    actArr = [...dates].sort().map(d => ({
+      date: d,
+      users:        (src.users||{})[d]||0,
+      jobs:         (src.jobs||{})[d]||0,
+      applications: (src.applications||{})[d]||0,
+    }));
+  }
+
+  const userSegs = [
+    { label: 'Employees', value: u.employees||0, color: '#1D9E75' },
+    { label: 'Employers', value: u.employers||0, color: '#185FA5' },
+    { label: 'Suspended', value: u.suspended||0, color: '#f87171' },
+    { label: 'Admins',    value: u.admins||0,    color: '#fbbf24' },
+  ].filter(x => x.value > 0);
+
+  const jobSegs = [
+    { label: 'Open',      value: j.open||0,      color: '#1D9E75' },
+    { label: 'Closed',    value: j.closed||0,    color: '#9ca3af' },
+    { label: 'Cancelled', value: j.cancelled||0, color: '#f87171' },
+  ].filter(x => x.value > 0);
+
+  const cats = j.topCategories || {};
+
+  const html = `
+    <div class="card">
+      <div class="card-header">👥 Users</div>
+      <div class="donut-wrap">
+        ${donutChart(userSegs, 110)}
+        <div class="donut-legend">
+          ${userSegs.map(seg => `<div class="donut-leg-item"><div class="donut-leg-dot" style="background:${seg.color}"></div><span>${seg.label}</span><span class="donut-leg-val">${seg.value.toLocaleString()}</span></div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;">
+          ${miniStat('Total', u.total||0)}${miniStat('Active', u.active||0)}${miniStat('New (7d)', u.new7Days||0)}${miniStat('New (30d)', u.new30Days||0)}
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">💼 Jobs</div>
+        <div class="donut-wrap">
+          ${donutChart(jobSegs, 90)}
+          <div class="donut-legend">
+            ${jobSegs.map(seg => `<div class="donut-leg-item"><div class="donut-leg-dot" style="background:${seg.color}"></div><span>${seg.label}</span><span class="donut-leg-val">${seg.value.toLocaleString()}</span></div>`).join('')}
+            <div class="donut-leg-item" style="margin-top:4px;padding-top:8px;border-top:1px solid #f0f0f0;"><span style="color:#aaa;font-size:11px;">New (7d)</span><span class="donut-leg-val" style="font-size:13px;">${j.new7Days||0}</span></div>
+          </div>
+        </div>
+        ${Object.keys(cats).length ? `<div style="padding:0 18px 14px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:8px;">Top categories</div><div class="cat-pills">${Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([cat,cnt])=>`<div class="cat-pill">${esc(cat||'Uncategorized')}<span class="cat-pill-count">${cnt}</span></div>`).join('')}</div></div>` : ''}
+      </div>
+
+      <div class="card">
+        <div class="card-header">📋 Applications</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 18px;">
+          ${miniStat('Total',a.total||0)}${miniStat('Pending',a.pending||0)}${miniStat('Accepted',a.accepted||0)}${miniStat('Rejected',a.rejected||0)}
+        </div>
+        <div style="padding:0 18px 14px;display:flex;gap:18px;">
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Application rate</div><div style="font-size:22px;font-weight:800;color:#111;">${(a.applicationRate||0).toFixed(1)}<span style="font-size:13px;color:#aaa;font-weight:500;">%</span></div></div>
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Acceptance rate</div><div style="font-size:22px;font-weight:800;color:#1D9E75;">${(a.acceptanceRate||0).toFixed(1)}<span style="font-size:13px;color:#aaa;font-weight:500;">%</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">🔨 Work completions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 18px;">
+          ${miniStat('Total',w.totalConfirmations||0)}${miniStat('Completed',w.completed||0)}${miniStat('Pending',w.pending||0)}${miniStat('Disputed',w.disputed||0)}
+        </div>
+        <div style="padding:0 18px 14px;display:flex;gap:18px;">
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Completion rate</div><div style="font-size:22px;font-weight:800;color:#1D9E75;">${(w.completionRate||0).toFixed(1)}<span style="font-size:13px;color:#aaa;font-weight:500;">%</span></div></div>
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Dispute rate</div><div style="font-size:22px;font-weight:800;color:${(w.disputeRate||0)>10?'#dc2626':'#111'};">${(w.disputeRate||0).toFixed(1)}<span style="font-size:13px;color:#aaa;font-weight:500;">%</span></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">⭐ Reviews <span style="font-size:20px;font-weight:800;color:#1D9E75;">${(rv.averageRating||0).toFixed(1)} ★</span></div>
+        ${ratingBars(rv.ratingDistribution, rv.total||0)}
+        <div style="padding:0 18px 14px;display:flex;gap:18px;">
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Total approved</div><div style="font-size:22px;font-weight:800;color:#111;">${rv.total||0}</div></div>
+          <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aaa;margin-bottom:4px;">Flagged</div><div style="font-size:22px;font-weight:800;color:${(rv.flagged||0)>0?'#dc2626':'#111'};">${rv.flagged||0}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">📈 Engagement metrics</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 18px;">
+        ${miniStat('Jobs per employer', (eng.jobsPerEmployer||0).toFixed(1))}
+        ${miniStat('Applications per job', (eng.applicationsPerJob||0).toFixed(1))}
+        ${miniStat('Jobs per worker', (eng.completedJobsPerEmployee||0).toFixed(1))}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        Activity timeline — last 30 days
+        <div style="display:flex;gap:14px;">
+          <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div>Users</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#185FA5"></div>Jobs</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Applications</div>
+        </div>
+      </div>
+      ${actArr.length ? barChart(actArr,'date',['users','jobs','applications'],['#1D9E75','#185FA5','#7c3aed'],180) : '<div style="padding:30px;color:#bbb;font-size:12px;text-align:center;">No activity data yet.</div>'}
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">🏆 Top rated workers</div>
+        ${(top.topRated||[]).length
+          ? (top.topRated||[]).slice(0,8).map((u,i)=>`<div class="performer-row"><div style="width:18px;font-size:11px;font-weight:700;color:#ddd;">#${i+1}</div><div class="avatar">${initials(u.name)}</div><div style="flex:1;min-width:0;"><div class="performer-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.name||'—')}</div><div class="performer-sub">${u.completedJobs||0} jobs</div></div><div class="performer-score">${(u.averageRating||0).toFixed(1)}★</div></div>`).join('')
+          : emptyState('No data yet')}
+      </div>
+      <div class="card">
+        <div class="card-header">🏢 Most active employers</div>
+        ${(top.topEmployers||[]).length
+          ? (top.topEmployers||[]).slice(0,8).map((u,i)=>`<div class="performer-row"><div style="width:18px;font-size:11px;font-weight:700;color:#ddd;">#${i+1}</div><div class="avatar" style="background:#dbeafe;color:#1e40af;">${initials(u.name)}</div><div style="flex:1;min-width:0;"><div class="performer-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.name||'—')}</div><div class="performer-sub">${u.jobsPosted||0} jobs posted</div></div></div>`).join('')
+          : emptyState('No data yet')}
+      </div>
+    </div>
+
+    <div style="font-size:10px;color:#ccc;text-align:right;padding-bottom:8px;">
+      Generated at ${new Date().toLocaleString()} · ${esc(BASE_URL)}
+    </div>`;
+
+  setContent(html);
+}
+
+function miniStat(label, value) {
+  return `<div class="fin-item"><div class="fin-item-label">${label}</div><div class="fin-item-value">${typeof value === 'number' ? value.toLocaleString() : value}</div></div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REPORT MODAL
+═══════════════════════════════════════════════════════════ */
+let _reportData = null;
+
+async function openReportModal() {
+  $('report-modal').classList.add('open');
+  $('report-body').innerHTML = '<div class="loading"><span class="spin">⟳</span> Fetching data…</div>';
+
+  let s = _cachedPlatformStats;
+  if (!s) {
+    const r = await api('GET', '/api/v1/admin/stats/platform');
+    if (!r.ok) { $('report-body').innerHTML = alertHtml('error', 'Failed to load stats: ' + r.error); return; }
+    s = r.data?.data || r.data || {};
+    _cachedPlatformStats = s;
+  }
+
+  const [rTop] = await Promise.all([api('GET', '/api/v1/admin/stats/top-performers')]);
+  const top = rTop.ok ? (rTop.data?.data || rTop.data || {}) : {};
+
+  const u = s.users||{}, j = s.jobs||{}, a = s.applications||{}, w = s.work||{}, rv = s.reviews||{};
+  _reportData = { s, top, generatedAt: new Date().toISOString() };
+
+  $('report-body').innerHTML = `
+    <div style="font-size:11px;color:#aaa;margin-bottom:18px;">Generated: ${new Date().toLocaleString()} · Backend: ${esc(BASE_URL)}</div>
+
+    <div class="report-section">
+      <div class="report-section-title">👥 Users</div>
+      ${reportRow('Total users',u.total||0)}${reportRow('Active',u.active||0)}${reportRow('Suspended',u.suspended||0)}
+      ${reportRow('Employees',u.employees||0)}${reportRow('Employers',u.employers||0)}${reportRow('Admins',u.admins||0)}
+      ${reportRow('New this week',u.new7Days||0)}${reportRow('New this month',u.new30Days||0)}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">💼 Jobs</div>
+      ${reportRow('Total',j.total||0)}${reportRow('Open',j.open||0)}${reportRow('Closed',j.closed||0)}
+      ${reportRow('Cancelled',j.cancelled||0)}${reportRow('Posted this week',j.new7Days||0)}${reportRow('Posted this month',j.new30Days||0)}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">📋 Applications</div>
+      ${reportRow('Total',a.total||0)}${reportRow('Pending',a.pending||0)}${reportRow('Accepted',a.accepted||0)}
+      ${reportRow('Rejected',a.rejected||0)}${reportRow('Application rate',(a.applicationRate||0).toFixed(1)+'%')}${reportRow('Acceptance rate',(a.acceptanceRate||0).toFixed(1)+'%')}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">🔨 Work Completions</div>
+      ${reportRow('Total confirmations',w.totalConfirmations||0)}${reportRow('Completed',w.completed||0)}
+      ${reportRow('Pending',w.pending||0)}${reportRow('Disputed',w.disputed||0)}
+      ${reportRow('Completion rate',(w.completionRate||0).toFixed(1)+'%')}${reportRow('Dispute rate',(w.disputeRate||0).toFixed(1)+'%')}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">⭐ Reviews</div>
+      ${reportRow('Total approved',rv.total||0)}${reportRow('Flagged',rv.flagged||0)}
+      ${reportRow('Average rating',(rv.averageRating||0).toFixed(1)+' / 5.0')}
+      ${Object.entries(rv.ratingDistribution||{}).sort((a,b)=>b[0]-a[0]).map(([s,c])=>reportRow(s+' star',c)).join('')}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">🏆 Top rated workers</div>
+      ${(top.topRated||[]).slice(0,5).map((u,i)=>reportRow(`#${i+1} ${u.name||'—'}`,(u.averageRating||0).toFixed(1)+'★ · '+(u.completedJobs||0)+' jobs')).join('')||reportRow('No data','—')}
+    </div>
+
+    <div class="report-section">
+      <div class="report-section-title">🏢 Most active employers</div>
+      ${(top.topEmployers||[]).slice(0,5).map((u,i)=>reportRow(`#${i+1} ${u.name||'—'}`,(u.jobsPosted||0)+' jobs posted')).join('')||reportRow('No data','—')}
+    </div>`;
+}
+
+function reportRow(label, value) {
+  return `<div class="report-row"><span class="report-row-label">${esc(String(label))}</span><span class="report-row-value">${esc(String(value))}</span></div>`;
+}
+
+function closeReport() { $('report-modal').classList.remove('open'); }
+
+function downloadReport() {
+  if (!_reportData) return;
+  const { s, top } = _reportData;
+  const u = s.users||{}, j = s.jobs||{}, a = s.applications||{}, w = s.work||{}, rv = s.reviews||{};
+  const rows = [
+    ['Category','Metric','Value'],
+    ['Users','Total',u.total||0],['Users','Active',u.active||0],['Users','Suspended',u.suspended||0],
+    ['Users','Employees',u.employees||0],['Users','Employers',u.employers||0],
+    ['Users','New (7d)',u.new7Days||0],['Users','New (30d)',u.new30Days||0],
+    ['Jobs','Total',j.total||0],['Jobs','Open',j.open||0],['Jobs','Closed',j.closed||0],
+    ['Jobs','Cancelled',j.cancelled||0],['Jobs','New (7d)',j.new7Days||0],['Jobs','New (30d)',j.new30Days||0],
+    ['Applications','Total',a.total||0],['Applications','Pending',a.pending||0],
+    ['Applications','Accepted',a.accepted||0],['Applications','Rejected',a.rejected||0],
+    ['Applications','Application Rate %',a.applicationRate||0],['Applications','Acceptance Rate %',a.acceptanceRate||0],
+    ['Work','Total Confirmations',w.totalConfirmations||0],['Work','Completed',w.completed||0],
+    ['Work','Pending',w.pending||0],['Work','Disputed',w.disputed||0],
+    ['Work','Completion Rate %',w.completionRate||0],['Work','Dispute Rate %',w.disputeRate||0],
+    ['Reviews','Total Approved',rv.total||0],['Reviews','Flagged',rv.flagged||0],['Reviews','Average Rating',rv.averageRating||0],
+    ...Object.entries(rv.ratingDistribution||{}).sort((a,b)=>b[0]-a[0]).map(([s,c])=>['Reviews',s+' Star',c]),
+    ...(top.topRated||[]).slice(0,10).map((u,i)=>['Top Workers',`#${i+1} ${u.name||''}`,`${(u.averageRating||0).toFixed(1)}★ / ${u.completedJobs||0} jobs`]),
+    ...(top.topEmployers||[]).slice(0,10).map((u,i)=>['Top Employers',`#${i+1} ${u.name||''}`,`${u.jobsPosted||0} jobs posted`]),
+  ];
+  const csv = rows.map(r => r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  triggerDownload(`IkirakaLink_report_${new Date().toISOString().slice(0,10)}.csv`, 'text/csv', csv);
+}
+
+function downloadReportJSON() {
+  if (!_reportData) return;
+  triggerDownload(`IkirakaLink_report_${new Date().toISOString().slice(0,10)}.json`, 'application/json', JSON.stringify(_reportData, null, 2));
+}
+
+function triggerDownload(filename, mime, content) {
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+$('report-modal').addEventListener('click', e => { if (e.target === $('report-modal')) closeReport(); });
+</script>
+</body>
+</html>

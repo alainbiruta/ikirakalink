@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.microcareer.match.app-mergeDebugResources-90:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\klain\\.gradle\\caches\\8.13\\transforms\\0af7796b99498cd9191b92e5403c399f\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

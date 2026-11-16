@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+
+    <!-- ================== -->
+    <!-- Prod   uction settings -->
+    <!-- ================== -->
+
+    <!-- Base config: HTTPS only -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Domain-specific configs for production APIs -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">api.microcareer.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">auth.microcareer.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">payments.microcareer.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- ================== -->
+    <!-- Debug settings -->
+    <!-- ================== -->
+
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" /> <!-- allow self-signed certs in debug -->
+        </trust-anchors>
+
+        <!-- Allow all HTTP traffic on debug (localhost/emulator) -->
+        <base-config cleartextTrafficPermitted="true" />
+    </debug-overrides>
+
+</network-security-config>
